@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  api:
+    image: datascientest/fastapi:1.0.0
+    container_name: fastapi_container
+    networks:
+      - test_network
+
+  test_authentication:
+    build:
+      context: .
+      dockerfile: Dockerfile.test_authentication
+    container_name: test_authentication_container
+    environment:
+      - LOG=1
+      - API_ADDRESS=api  # Use the service name in Docker Compose
+      - API_PORT=8000
+    depends_on:
+      - api
+    networks:
+      - test_network
+    volumes:
+      - ./logs:/app/logs  # Mount a directory instead of a file
+
+  test_authorization:
+    build:
+      context: .
+      dockerfile: Dockerfile.test_authorization
+    container_name: test_authorization_container
+    environment:
+      - LOG=1
+      - API_ADDRESS=api  # Use the service name in Docker Compose
+      - API_PORT=8000
+    depends_on:
+      - api
+    networks:
+      - test_network
+    volumes:
+      - ./logs:/app/logs  # Mount a directory instead of a file
+
+  test_content:
+    build:
+      context: .
+      dockerfile: Dockerfile.test_content
+    container_name: test_content_container
+    environment:
+      - LOG=1
+      - API_ADDRESS=api  # Use the service name in Docker Compose
+      - API_PORT=8000
+    depends_on:
+      - api
+    networks:
+      - test_network
+    volumes:
+      - ./logs:/app/logs  # Mount a directory instead of a file
+
+networks:
+  test_network:
+    driver: bridge
