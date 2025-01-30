@@ -4,6 +4,7 @@ FROM python:3.9-slim
 
 # Set working directory
 WORKDIR /app
+RUN mkdir -p /app/logs
 
 # Copy application files
 COPY . /app
@@ -13,6 +14,6 @@ RUN pip install --upgrade pip --no-cache-dir --progress-bar off
 RUN pip install -r requirements.txt --no-cache-dir --progress-bar off
 
 # Set the command to run your script and keep the container alive
-CMD sh -c "python test_authentication.py && sleep 10"
+CMD sh -c "python test_authentication.py && sleep 20"
 
 

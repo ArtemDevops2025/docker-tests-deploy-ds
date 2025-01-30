@@ -14,14 +14,14 @@ services:
     container_name: test_authentication_container
     environment:
       - LOG=1
-      - API_ADDRESS=api  # Use the service name in Docker Compose
+      - API_ADDRESS=api
       - API_PORT=8000
     depends_on:
       - api
     networks:
       - test_network
     volumes:
-      - ./logs:/app/logs  # Mount a directory instead of a file
+      - ./logs:/app/logs
 
   test_authorization:
     build:
@@ -30,14 +30,14 @@ services:
     container_name: test_authorization_container
     environment:
       - LOG=1
-      - API_ADDRESS=api  # Use the service name in Docker Compose
+      - API_ADDRESS=api
       - API_PORT=8000
     depends_on:
       - api
     networks:
       - test_network
     volumes:
-      - ./logs:/app/logs  # Mount a directory instead of a file
+      - ./logs:/app/logs
 
   test_content:
     build:
@@ -46,14 +46,29 @@ services:
     container_name: test_content_container
     environment:
       - LOG=1
-      - API_ADDRESS=api  # Use the service name in Docker Compose
+      - API_ADDRESS=api
       - API_PORT=8000
     depends_on:
       - api
     networks:
       - test_network
     volumes:
-      - ./logs:/app/logs  # Mount a directory instead of a file
+      - ./logs:/app/logs
+
+  summary:
+    image: python:3.9-slim
+    container_name: summary_container
+    depends_on:
+      - test_authentication
+      - test_authorization
+      - test_content
+    volumes:
+      - ./logs:/app/logs
+      - ./summary.py:/app/summary.py
+    command: >
+      sh -c "sleep 10 && python /app/summary.py"
+    networks:
+      - test_network
 
 networks:
   test_network:
