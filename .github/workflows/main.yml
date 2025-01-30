@@ -24,7 +24,7 @@ jobs:
 
       - name: Wait for API to be ready
         run: |
-          max_retries=30
+          max_retries=10
           retries=0
           until curl -s http://localhost:8000/health || [ $retries -eq $max_retries ]
           do
@@ -39,9 +39,10 @@ jobs:
 
       - name: Run tests
         run: |
-          docker-compose run test-container-1
-          docker-compose run test-container-2
-          docker-compose run test-container-3
+          docker-compose run test_authentication_container
+          docker-compose run test_authorization_container
+          docker-compose run test_content_container
+          docker-compose run summary_container
 
       - name: Stop containers
         if: always()
