@@ -1,4 +1,3 @@
-
 name: Docker Compose CI
 
 on:
@@ -10,32 +9,40 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Build and start containers
-      run: docker-compose up -d
+      - name: Set up Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
 
-    - name: Wait for API to be ready
-      run: |
-        max_retries=30
-        retries=0
-        until curl -s http://localhost:8000/health || [ $retries -eq $max_retries ]
-        do
-          echo "Waiting for API to be ready..."
-          sleep 5
-          retries=$((retries+1))
-        done
-        if [ $retries -eq $max_retries ]; then
-          echo "API failed to start within the expected time."
-          exit 1
-        fi
+      - name: Build and start containers
+        run: docker-compose up -d
 
-    - name: Run tests
-      run: docker-compose run test-container-1 && docker-compose run test-container-2 && docker-compose run test-container-3
+      - name: Wait for API to be ready
+        run: |
+          max_retries=30
+          retries=0
+          until curl -s http://localhost:8000/health || [ $retries -eq $max_retries ]
+          do
+            echo "Waiting for API to be ready..."
+            sleep 5
+            retries=$((retries+1))
+          done
+          if [ $retries -eq $max_retries ]; then
+            echo "API failed to start within the expected time."
+            exit 1
+          fi
 
-    - name: Stop containers
-      if: always()
-      run: docker-compose down
+      - name: Run tests
+        run: |
+          docker-compose run test-container-1
+          docker-compose run test-container-2
+          docker-compose run test-container-3
+
+      - name: Stop containers
+        if: always()
+        run: docker-compose down
