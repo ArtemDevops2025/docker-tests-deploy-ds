@@ -1,0 +1,41 @@
+
+name: Docker Compose CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Build and start containers
+      run: docker-compose up -d
+
+    - name: Wait for API to be ready
+      run: |
+        max_retries=30
+        retries=0
+        until curl -s http://localhost:8000/health || [ $retries -eq $max_retries ]
+        do
+          echo "Waiting for API to be ready..."
+          sleep 5
+          retries=$((retries+1))
+        done
+        if [ $retries -eq $max_retries ]; then
+          echo "API failed to start within the expected time."
+          exit 1
+        fi
+
+    - name: Run tests
+      run: docker-compose run test-container-1 && docker-compose run test-container-2 && docker-compose run test-container-3
+
+    - name: Stop containers
+      if: always()
+      run: docker-compose down
